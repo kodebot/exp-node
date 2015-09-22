@@ -1,0 +1,21 @@
+{
+  "name": "MtcDataExtractor",
+  "version": "0.0.1",
+  "description": "The Metropoliton Transport Corporation bus route data extractor",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "del": "^2.0.2",
+    "gulp": "^3.9.0",
+    "gulp-shell": "^0.4.3",
+    "gulp-typescript": "^2.9.0",
+    "tsd": "^0.6.4"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^2.47.0"
+  }
+}
