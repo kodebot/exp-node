@@ -16,6 +16,7 @@
     "tsd": "^0.6.4"
   },
   "dependencies": {
+    "lodash": "^3.10.1",
     "selenium-webdriver": "^2.47.0"
   }
 }

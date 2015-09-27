@@ -10,6 +10,12 @@
     },
     "selenium-webdriver/selenium-webdriver.d.ts": {
       "commit": "09e37435ffb2c56a6f908081194a74756f24f99d"
+    },
+    "node/node.d.ts": {
+      "commit": "b937e64fc9245d299fa4ba26c6eddbeaed42a920"
+    },
+    "lodash/lodash.d.ts": {
+      "commit": "b937e64fc9245d299fa4ba26c6eddbeaed42a920"
     }
   }
 }
