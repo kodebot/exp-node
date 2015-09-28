@@ -9,21 +9,23 @@ import driverHelpers = require("./driverhelper");
 
 var driver: webdriver.WebDriver= new driverHelpers.DriverHelper().getDriver();
 var harvester = new harvestors.Harvester(driver);
-harvester.getRoutes((err, options) =>{
-	if(err){
-		console.log("Error while retrieving routes.");
-		return;
-	}
+// harvester.getRoutes((err, options) =>{
+// 	if(err){
+// 		console.log("Error while retrieving routes.");
+// 		return;
+// 	}
 	
-	options.forEach(option => console.log(option));
-});
+// 	options.forEach(option => console.log(option));
+// });
 
-harvester.getStages((err, options) =>{
-	if(err){
-		console.log("Error while retrieving routes.");
-		return;
-	}
+// harvester.getStages((err, options) =>{
+// 	if(err){
+// 		console.log("Error while retrieving routes.");
+// 		return;
+// 	}
 	
-	options.forEach(option => console.log(option));
-});
+// 	options.forEach(option => console.log(option));
+// });
+
+harvester.getAllStagesOfAllRoute(null);
  driver.quit();

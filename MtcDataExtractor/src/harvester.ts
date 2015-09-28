@@ -9,6 +9,7 @@ import _ = require("lodash");
 const MTC_MAIN_URL: string = "http://www.mtcbus.org/";
 const MTC_ROUTES_URL: string = "http://mtcbus.org/Routes.asp";
 const MTC_STAGES_URL: string = "http://mtcbus.org/Places.asp";
+const MTC_ROUTES_SELECT_ELEM: string = "cboRouteCode";
 export class Harvester {
 	constructor(private driver: webdriver.WebDriver) {
 	}
@@ -16,7 +17,7 @@ export class Harvester {
 	public getRoutes(cb: (err: Error, options: string[]) => void) {
 		try {
 			this.driver.get(MTC_ROUTES_URL);
-			return this.getValuesFromSelectOptions("cboRouteCode", cb);
+			return this.getValuesFromSelectOptions(MTC_ROUTES_SELECT_ELEM, cb);
 		} catch (e) {
 			return cb(e, null);
 		}
@@ -43,9 +44,30 @@ export class Harvester {
 			return cb(e, null);
 		}
 	}
-	
-	public getAllStagesOfARoute(route:string, cb:(err:Error, stages:string[])=>void){
-		
+
+	public getAllStagesOfAllRoute(cb: (err: Error, stages: { [index: string]: string[] }) => void) {
+		try {
+			this.driver.get(MTC_ROUTES_URL);
+
+			this.getRoutes((err, options) => {
+				options.forEach((option, index) => {
+					this.driver.findElements(By.tagName("option"))
+						.then(elems => elems[index].click())
+						.then(_ => this.driver.findElement(By.name("submit")))
+						.then(elem => elem.click());
+				});
+			});
+
+
+
+		} catch (e) {
+			return cb(e, null);
+		}
+	}
+
+	private getStagesOfARoute(text: string, cb: (err: Error, states: { [index: string]: string[] }) => void) {
+		let stages: { [index: string]: string[] } = {};
+		console.log(text);
 	}
 
 	private getValuesFromSelectOptions(elemName: string, cb: (err: Error, options: string[]) => void) {
