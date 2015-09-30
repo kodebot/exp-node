@@ -1,14 +1,11 @@
 /// <reference path="../typings/tsd.d.ts" />
 
-import webdriver = require('selenium-webdriver');
-import By = webdriver.By;
-import until = webdriver.until;
+import {By, until, WebDriver} from "selenium-webdriver";
+import {Harvester} from "./harvester";
+import {DriverHelper} from "./driverhelper";
 
-import harvestors = require("./harvester");
-import driverHelpers = require("./driverhelper");
-
-var driver: webdriver.WebDriver= new driverHelpers.DriverHelper().getDriver();
-var harvester = new harvestors.Harvester(driver);
+var driver: webdriver.WebDriver= new DriverHelper().getDriver();
+var harvester = new Harvester(driver);
 // harvester.getRoutes((err, options) =>{
 // 	if(err){
 // 		console.log("Error while retrieving routes.");

@@ -1,12 +1,9 @@
 ///<reference path="../typings/tsd.d.ts"/>
 
-import webdriver = require('selenium-webdriver');
-import By = webdriver.By;
-import until = webdriver.until;
-import _ = require("lodash");
-import q = require("q");
-import types = require("types");
-
+import {By, until, WebDriver} from "selenium-webdriver";
+import * as _ from "lodash";
+import * as q from "q";
+import * as types  from "types";
 
 const MTC_MAIN_URL: string = "http://www.mtcbus.org/";
 const MTC_ROUTES_URL: string = "http://mtcbus.org/Routes.asp";
@@ -49,66 +46,65 @@ export class Harvester {
 	}
 
 	public getAllStagesOfAllRoute(cb: (err: Error, stages: { [index: string]: string[] }) => void) {
-		try {
-			this.driver.get(MTC_ROUTES_URL);
-
-			this.getRoutes((err, options) => {
-				var actions: any[] = [];
-
-				options.forEach((option, index) => {
-					actions.push(this.driver.findElements(By.tagName("option"))
+		this.driver.get(MTC_ROUTES_URL);
+		this.getRoutes((err, options) => {
+			q.all(options.map((option, index) => {
+				if (index < 3) {
+					return this.driver.findElements(By.tagName("option"))
 						.then(elems => elems[index].click())
 						.then(_ => this.driver.findElement(By.name("submit")))
 						.then(elem => elem.click())
-						.then(() => this.getRouteInfo(this.driver)));
-				});
-
-				return q.all(actions).then(data => console.log(data));
-
-			});
-
-
-
-		} catch (e) {
-			return cb(e, null);
-		}
+						.then(() =>  this.getRouteInfo(this.driver))
+						.thenCatch(err => cb(err, null));
+				}
+			}))
+				.then(routeInfo => console.log(routeInfo.filter(route => route !== undefined)))
+				.catch(err => console.error(err));
+		});
 	}
 
 	private getRouteInfo(driver: webdriver.WebDriver) {
 		let routeDetailXpath = MTC_ROUTE_INFO_TABLE_XPATH + "tr[3]/td";
-
 		let routeInfo: types.RouteInfo = {
 			routeNo: "", serviceType: "", origin: "", destination: "", journeyTime: 0, stages: []
 		};
-		var pr1 = driver.findElements(By.xpath(routeDetailXpath))
+
+		driver.findElements(By.xpath(routeDetailXpath))
 			.then(elems => {
-				return q.all<any>([elems[0].getText().then(text=> routeInfo.routeNo = text),
-					elems[1].getText().then(text=> routeInfo.serviceType = text),
-					elems[2].getText().then(text=> routeInfo.origin = text),
-					elems[3].getText().then(text=> routeInfo.destination = text),
-					elems[4].getText().then(text=> routeInfo.journeyTime = parseInt(text))
-				]);
+				return q.all<any>([elems[0].getText(),
+					elems[1].getText(),
+					elems[2].getText(),
+					elems[3].getText(),
+					elems[4].getText()])
+					.then(routeData => {
+						routeInfo.routeNo = routeData[0];
+						routeInfo.serviceType = routeData[1];
+						routeInfo.origin = routeData[2];
+						routeInfo.destination = routeData[3];
+						routeInfo.journeyTime = routeData[4];
+						return routeInfo;
+					});
 			});
 
-		var pr2 = driver.findElements(By.xpath(MTC_ROUTE_INFO_TABLE_XPATH + "tr"))
+		driver.findElements(By.xpath(MTC_ROUTE_INFO_TABLE_XPATH + "tr"))
 			.then(elems => {
-				var actions = elems.map((elem, index) => {
+				return q.all(elems.map((elem, index) => {
 					if (index > 4 && index < elems.length - 2) {
 						return elems[index].findElements(By.tagName("td"))
-							.then(tds => tds[1].getText().then(text => routeInfo.stages.push(text)));
+							.then(tds => tds[1].getText());
 					}
-				});
-
-				return q.all(actions);
+				}).filter(item => item !== undefined))
+					.then(stages => {
+						routeInfo.stages = stages;
+						return routeInfo;
+					});
 			});
 
-		return q.all<any>([pr1, pr2])
-			.then(_ => routeInfo);
+		return q.when(routeInfo);
 	}
 
 	private getStagesOfARoute(text: string, cb: (err: Error, states: { [index: string]: string[] }) => void) {
 		let stages: { [index: string]: string[] } = {};
-		console.log(text);
 	}
 
 	private getValuesFromSelectOptions(elemName: string, cb: (err: Error, options: string[]) => void) {
@@ -123,36 +119,9 @@ export class Harvester {
 			return cb(error, null);
 		}
 
-		try {
-			var selectElement = this.driver.findElement(By.name(elemName));
-			var options = selectElement.findElements(By.tagName("option"))
-				.then(options => {
-					try {
-						let totalOptions = options.length;
-						options.map(item => {
-							try {
-								item.getText()
-									.then(text => {
-										try {
-											results.push(text);
-											if (--totalOptions === 0) {
-												return cb(null, results);
-											}
-										} catch (e) {
-											return cb(e, null);
-										}
-									});
-							} catch (e) {
-								return cb(e, null);
-							}
-						});
-					} catch (e) {
-						return cb(e, null);
-					}
-				});
-		}
-		catch (e) {
-			return cb(e, null);
-		}
+		this.driver.findElement(By.name(elemName))
+			.then(selectElement => selectElement.findElements(By.tagName("option")))
+			.then(options => q.all(options.map(item => item.getText())).then(results => cb(null, results)))
+			.thenCatch(err => cb(err, null))
 	}
 }
