@@ -24,5 +24,6 @@ var harvester = new Harvester(driver);
 // 	options.forEach(option => console.log(option));
 // });
 
-harvester.getAllStagesOfAllRoute(null);
+// harvester.getAllStagesOfAllRoute(null);
+harvester.getRoutesBetweenAllStages();
  driver.quit();

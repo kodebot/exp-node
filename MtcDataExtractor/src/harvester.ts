@@ -54,7 +54,7 @@ export class Harvester {
 						.then(elems => elems[index].click())
 						.then(_ => this.driver.findElement(By.name("submit")))
 						.then(elem => elem.click())
-						.then(() =>  this.getRouteInfo(this.driver))
+						.then(() => this.getRouteInfo(this.driver))
 						.thenCatch(err => cb(err, null));
 				}
 			}))
@@ -62,6 +62,56 @@ export class Harvester {
 				.catch(err => console.error(err));
 		});
 	}
+
+	public getRoutesBetweenAllStages() {
+		this.driver.get(MTC_STAGES_URL);
+		this.getStages((err, stages) => {
+
+			this.driver.findElement(By.name("cboSourceStageName"))
+				.findElement(By.xpath(`/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[9]/td[3]/select/option[contains(.,'C.M.B.T')]`))
+				.click()
+				.then(__ => {
+					return this.driver.findElement(By.name("cboDestStageName"))
+						.findElement(By.xpath(`/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[9]/td[3]/select/option[contains(.,'C.M.B.T')]`))
+						.click();
+				})
+				.then(__ => {
+					this.driver.findElement(By.name("submit"));
+					return this.driver.findElement(By.name("dfdfsf"));
+				});
+
+
+			// for (var i = 0; i < stages.length - 2; i++) {
+			// 	for (var j = 1; j < stages.length - 1; j++) {
+
+			// 		this.driver.findElement(By.name("cboSourceStageName"));
+			// 		this.driver.findElements(By.tagName("option"))
+			// 			.then(options => {
+			// 				options[i].click();
+			// 				this.driver.findElement(By.name("cboDestStageName"));
+			// 				return this.driver.findElements(By.tagName("option"))
+			// 					.then(options1 => {
+			// 						options1[j].click();
+			// 						this.driver.findElement(By.name("submit"));
+			// 						return this.driver.findElements(By.xpath("/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[11]/td/table/tbody/tr"))
+			// 							.then(trs => {
+			// 								if (trs.length > 2) {
+			// 									trs.forEach((tr, index) => {
+			// 										if (index > 1 && index < trs.length - 1) {
+			// 											return tr.getText()
+			// 												.then(text => console.log(text));
+			// 										}
+			// 									})
+			// 								}
+			// 							});
+			// 					});
+			// 			});
+			// 	}
+			// }
+
+		});
+	}
+
 
 	private getRouteInfo(driver: webdriver.WebDriver) {
 		let routeDetailXpath = MTC_ROUTE_INFO_TABLE_XPATH + "tr[3]/td";

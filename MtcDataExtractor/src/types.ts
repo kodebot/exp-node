@@ -6,3 +6,9 @@ export interface RouteInfo {
 	journeyTime: number;
 	stages:string[];
 }
+
+export interface RoutesBetweenStages {
+	origin:string;
+	destination:string;
+	routeNos:string[];
+}
