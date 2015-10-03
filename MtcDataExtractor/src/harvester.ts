@@ -45,73 +45,48 @@ export class Harvester {
 		}
 	}
 
-	public getAllStagesOfAllRoute(cb: (err: Error, stages: { [index: string]: string[] }) => void) {
+	public getAllStagesOfAllRoute(routes: string[], cb: (err: Error, stages: { [index: string]: string[] }) => void) {
 		this.driver.get(MTC_ROUTES_URL);
-		this.getRoutes((err, options) => {
-			q.all(options.map((option, index) => {
-				if (index < 3) {
-					return this.driver.findElements(By.tagName("option"))
-						.then(elems => elems[index].click())
-						.then(_ => this.driver.findElement(By.name("submit")))
-						.then(elem => elem.click())
-						.then(() => this.getRouteInfo(this.driver))
-						.thenCatch(err => cb(err, null));
-				}
-			}))
-				.then(routeInfo => console.log(routeInfo.filter(route => route !== undefined)))
-				.catch(err => console.error(err));
-		});
+		q.all(routes.map((option, index) => {
+			if (index < 3) { // Todo: remove this check once the full functionality is implemented.
+				return this.driver.findElements(By.tagName("option"))
+					.then(elems => elems[index].click())
+					.then(_ => this.driver.findElement(By.name("submit")))
+					.then(elem => elem.click())
+					.then(() => this.getRouteInfo(this.driver))
+					.thenCatch(err => cb(err, null));
+			}
+		}))
+			.then(routeInfo => console.log(routeInfo.filter(route => route !== undefined)))
+			.catch(err => console.error(err));
 	}
 
-	public getRoutesBetweenAllStages() {
+	public getRoutesBetweenAllStages(stages: string[]) {
 		this.driver.get(MTC_STAGES_URL);
-		this.getStages((err, stages) => {
 
-			this.driver.findElement(By.name("cboSourceStageName"))
-				.findElement(By.xpath(`/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[9]/td[3]/select/option[contains(.,'C.M.B.T')]`))
-				.click()
-				.then(__ => {
-					return this.driver.findElement(By.name("cboDestStageName"))
-						.findElement(By.xpath(`/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[9]/td[3]/select/option[contains(.,'C.M.B.T')]`))
-						.click();
-				})
-				.then(__ => {
-					this.driver.findElement(By.name("submit"));
-					return this.driver.findElement(By.name("dfdfsf"));
-				});
+		for (var i = 0; i < 6; i++) {
+			for (var j = i + 1; j < 6; j++) {
+				process.nextTick((() => {
+					var firstStage = stages[i];
+					var secondStage = stages[j];
+					return () => {
+						this.driver.findElement(By.name("cboSourceStageName"))
+							.findElement(By.xpath(`/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[7]/td[3]/select/option[contains(.,'${firstStage}')]`))
+							.click();
 
+						this.driver.findElement(By.name("cboDestStageName"))
+							.findElement(By.xpath(`/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[9]/td[3]/select/option[contains(.,'${secondStage}')]`))
+							.click();
 
-			// for (var i = 0; i < stages.length - 2; i++) {
-			// 	for (var j = 1; j < stages.length - 1; j++) {
-
-			// 		this.driver.findElement(By.name("cboSourceStageName"));
-			// 		this.driver.findElements(By.tagName("option"))
-			// 			.then(options => {
-			// 				options[i].click();
-			// 				this.driver.findElement(By.name("cboDestStageName"));
-			// 				return this.driver.findElements(By.tagName("option"))
-			// 					.then(options1 => {
-			// 						options1[j].click();
-			// 						this.driver.findElement(By.name("submit"));
-			// 						return this.driver.findElements(By.xpath("/html/body/table/tbody/tr[1]/td[2]/table/tbody/tr[11]/td/table/tbody/tr"))
-			// 							.then(trs => {
-			// 								if (trs.length > 2) {
-			// 									trs.forEach((tr, index) => {
-			// 										if (index > 1 && index < trs.length - 1) {
-			// 											return tr.getText()
-			// 												.then(text => console.log(text));
-			// 										}
-			// 									})
-			// 								}
-			// 							});
-			// 					});
-			// 			});
-			// 	}
-			// }
-
-		});
+						this.driver.findElement(By.name("submit"))
+							.click()
+							.then(() => console.log(firstStage + "  " + secondStage));
+					}
+				}
+					)());
+			}
+		}
 	}
-
 
 	private getRouteInfo(driver: webdriver.WebDriver) {
 		let routeDetailXpath = MTC_ROUTE_INFO_TABLE_XPATH + "tr[3]/td";
@@ -169,9 +144,12 @@ export class Harvester {
 			return cb(error, null);
 		}
 
-		this.driver.findElement(By.name(elemName))
+		var x: any = this.driver.findElement(By.name(elemName))
 			.then(selectElement => selectElement.findElements(By.tagName("option")))
-			.then(options => q.all(options.map(item => item.getText())).then(results => cb(null, results)))
-			.thenCatch(err => cb(err, null))
+			.then(options => q.all(options.map(item => q(item.getText())))
+				.then(results => cb(null, results))
+				.catch(err => cb(err, null)));
+
+		return x;
 	}
 }
