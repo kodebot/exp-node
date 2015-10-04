@@ -3,33 +3,44 @@
 import {By, until, WebDriver} from "selenium-webdriver";
 import {Harvester} from "./harvester";
 import {DriverHelper} from "./driverhelper";
+import * as types from "./types";
+import * as async from "async";
 
 var driver: webdriver.WebDriver = new DriverHelper().getDriver();
 var harvester = new Harvester(driver);
 
-// harvester.getRoutes((err, routes) => {
-// 	if (err) {
-// 		console.log("Error while retrieving routes.");
-// 		return;
-// 	}
+async.series([harvester.getRoutes.bind(harvester), harvester.getStages.bind(harvester)], (err, results) => {
+	if (err) {
+		console.log("Error occured while routes and stages " + err.message);
+		return;
+	}
 
-	harvester.getStages((err, stages) => {
-		if (err) {
-			console.log("Error while retrieving routes.");
-			return;
-		}
-		// harvester.getAllStagesOfAllRoute(routes, (err, data) => {
-		// 	if (err) {
-		// 		console.log("Error while retrieving stages of all routes");
-		// 	}
-			
-		// 	console.log(data);
-		// });
-		harvester.getRoutesBetweenAllStages(stages);
-	});
-// });
+	let routes = results[0];
+	let stages = results[1];
 
+	console.log("stages and routes are retrieved successfully...");
 
+	async.series([
+		/*(cb) => harvester.getAllStagesOfAllRoute.call(harvester, routes, cb),*/
+		(cb) => harvester.getRoutesBetweenAllStages.call(harvester, stages, cb)],
+		(err, results) => {
+			if (err) {
+				console.log("Error while retrieving stages and routes combination " + err.message);
+			}
 
+			console.log(results);
+			async.filter(
+				<Array<types.RoutesBetweenStages>>results[0],
+				(item, cb) => {
+					var res = !!item.routeNos;
+					return cb(res)
+				},
+				(data) => {
+					console.log("Stages and Routes combination retrieved successfully...");
+					return;
+				});
+
+		});
+});
 
 driver.quit();
