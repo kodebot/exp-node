@@ -6,6 +6,25 @@ import {DriverHelper} from "./driverhelper";
 import * as types from "./types";
 import * as async from "async";
 
+import * as dataaccess from "./dataaccess";
+
+// dataaccess.write((err: Error) => {
+// 	if (err) {
+// 		console.log(err.message)
+// 	} else {
+// 		console.log("write success");
+// 	}
+// });
+
+// dataaccess.read((err: Error, res: any[]) => {
+// 	if (err) {
+// 		console.log(err.message);
+// 	} else {
+// 		console.log("read success");
+// 		console.log(res);
+// 	}
+// });
+
 var driver: webdriver.WebDriver = new DriverHelper().getDriver();
 var harvester = new Harvester(driver);
 
@@ -17,30 +36,39 @@ async.series([harvester.getRoutes.bind(harvester), harvester.getStages.bind(harv
 
 	let routes = results[0];
 	let stages = results[1];
-
 	console.log("stages and routes are retrieved successfully...");
 
-	async.series([
-		/*(cb) => harvester.getAllStagesOfAllRoute.call(harvester, routes, cb),*/
-		(cb) => harvester.getRoutesBetweenAllStages.call(harvester, stages, cb)],
-		(err, results) => {
-			if (err) {
-				console.log("Error while retrieving stages and routes combination " + err.message);
-			}
+	dataaccess.writeStages(<string[]>stages, (err: Error) => {
+		if (err) {
+			console.log("Error while writing stages in the database. " + err.message);
+		} else {
+			console.log("Stages are written successfully.");
+		}
+	});
 
-			console.log(results);
-			async.filter(
-				<Array<types.RoutesBetweenStages>>results[0],
-				(item, cb) => {
-					var res = !!item.routeNos;
-					return cb(res)
-				},
-				(data) => {
-					console.log("Stages and Routes combination retrieved successfully...");
-					return;
-				});
+	
 
-		});
+	// async.series([
+	// 	/*(cb) => harvester.getAllStagesOfAllRoute.call(harvester, routes, cb),*/
+	// 	(cb) => harvester.getRoutesBetweenAllStages.call(harvester, stages, cb)],
+	// 	(err, results) => {
+	// 		if (err) {
+	// 			console.log("Error while retrieving stages and routes combination " + err.message);
+	// 		}
+
+	// 		console.log(results);
+	// 		async.filter(
+	// 			<Array<types.RoutesBetweenStages>>results[0],
+	// 			(item, cb) => {
+	// 				var res = !!item.routeNos;
+	// 				return cb(res)
+	// 			},
+	// 			(data) => {
+	// 				console.log("Stages and Routes combination retrieved successfully...");
+	// 				return;
+	// 			});
+
+	// 	});
 });
 
 driver.quit();

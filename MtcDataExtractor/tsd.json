@@ -22,6 +22,9 @@
     },
     "async/async.d.ts": {
       "commit": "98d3168c2c570352a3a7393788e2ec9fbb08ade6"
+    },
+    "sqlite3/sqlite3.d.ts": {
+      "commit": "bc69320319f45bd8c6f871f3d295bbcc02ccc520"
     }
   }
 }

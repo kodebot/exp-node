@@ -178,12 +178,11 @@ export class Harvester {
 			return cb(error, null);
 		}
 
-		var x: any = this.driver.findElement(By.name(elemName))
+		return <any>this.driver.findElement(By.name(elemName))
 			.then(selectElement => selectElement.findElements(By.tagName("option")))
 			.then(options => q.all(options.map(item => q(item.getText())))
 				.then(results => cb(null, results))
 				.catch(err => cb(err, null)));
 
-		return x;
 	}
 }
