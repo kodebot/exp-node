@@ -4,7 +4,7 @@ import {By, until, WebDriver} from "selenium-webdriver";
 import * as _ from "lodash";
 import * as q from "q";
 import * as async from "async";
-import * as types  from "types";
+import * as types  from "./types";
 
 const MTC_MAIN_URL: string = "http://www.mtcbus.org/";
 const MTC_ROUTES_URL: string = "http://mtcbus.org/Routes.asp";
@@ -53,16 +53,15 @@ export class Harvester {
 		console.log("getting all stages of all routes...");
 		this.driver.get(MTC_ROUTES_URL);
 		q.all(routes.map((option, index) => {
-			if (index < 3) { // Todo: remove this check once the full functionality is implemented.
-				return this.driver.findElements(By.tagName("option"))
-					.then(elems => elems[index].click())
-					.then(_ => this.driver.findElement(By.name("submit")))
-					.then(elem => elem.click())
-					.then(() => this.getRouteInfo(this.driver))
-					.thenCatch(err => cb(err, null));
-			}
+			console.log("mapping control flow for " + option);
+			return this.driver.findElements(By.tagName("option"))
+				.then(elems => elems[index].click())
+				.then(_ => this.driver.findElement(By.name("submit")))
+				.then(elem => elem.click())
+				.then(() => this.getRouteInfo(this.driver))
+				.thenCatch(err => cb(err, null));
 		}))
-			.then(routeInfo => cb(null, routeInfo.filter(route => route !== undefined)))
+			.then(routeInfo => cb(null, routeInfo))
 			.catch(err => console.error(err));
 	}
 

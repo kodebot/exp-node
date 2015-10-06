@@ -3,5 +3,12 @@
         "module": "commonjs",
         "noImplicitAny": true,
         "sourceMap": true
-    }
+    },
+    "files": [
+        "src/main.ts",
+        "src/types.ts",
+        "src/driverhelper.ts",
+        "src/harvester.ts",
+        "src/dataaccess.ts"     
+    ]
 }

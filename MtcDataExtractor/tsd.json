@@ -5,9 +5,6 @@
   "path": "typings",
   "bundle": "typings/tsd.d.ts",
   "installed": {
-    "phantomjs/phantomjs.d.ts": {
-      "commit": "09e37435ffb2c56a6f908081194a74756f24f99d"
-    },
     "selenium-webdriver/selenium-webdriver.d.ts": {
       "commit": "09e37435ffb2c56a6f908081194a74756f24f99d"
     },
@@ -21,10 +18,10 @@
       "commit": "ffceea9dd124d277c4597c7bd12930666ec074c5"
     },
     "async/async.d.ts": {
-      "commit": "98d3168c2c570352a3a7393788e2ec9fbb08ade6"
+      "commit": "8299ca4d6d229b1f95f8edfd908f224893e60812"
     },
     "sqlite3/sqlite3.d.ts": {
-      "commit": "bc69320319f45bd8c6f871f3d295bbcc02ccc520"
+      "commit": "8299ca4d6d229b1f95f8edfd908f224893e60812"
     }
   }
 }
