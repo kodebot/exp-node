@@ -1,0 +1,10 @@
+<Page xmlns="http://www.nativescript.org/tns.xsd" loaded="pageLoaded">
+	<StackLayout orientation="vertical">
+	<TextField hint="Start typing to filter" text="{{ filterText }}" />
+		<ListView items="{{ stages, stages | filter }}">
+			<ListView.itemTemplate>
+				<Label text="{{$value}}" textWrap="true" />
+			</ListView.itemTemplate>
+		</ListView>
+	</StackLayout>
+</Page>
