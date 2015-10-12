@@ -1,0 +1,9 @@
+<Page xmlns="http://www.nativescript.org/tns.xsd" loaded="onLoaded" navigatedTo="onNavigatedTo">
+
+	<StackLayout>
+		<Label text="Select Origin and Destination" textWrap="true" />
+		<TextField hint="Origin" text="{{ origin }}" />
+		<TextField hint="Destination" text="{{  destination }}" />
+	</StackLayout>
+
+</Page>

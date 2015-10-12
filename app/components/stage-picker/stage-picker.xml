@@ -1,9 +1,18 @@
 <Page xmlns="http://www.nativescript.org/tns.xsd" loaded="pageLoaded">
+	<Page.actionBar>
+		<ActionBar title="Stages" icon="">
+			<NavigationButton text="Back" icon="" tap="" />
+			<ActionBar.actionItems>
+				<ActionItem icon="" text="Left" tap="" ios.position="left" />
+				<ActionItem icon="" text="Right" tap="" ios.position="right" />
+			</ActionBar.actionItems>
+		</ActionBar>
+	</Page.actionBar>
 	<StackLayout orientation="vertical">
-	<TextField hint="Start typing to filter" text="{{ filterText }}" />
-		<ListView items="{{ stages, stages | filter }}">
+		<TextField hint="Start typing to filter" text="{{ filterText }}" />
+		<ListView items="{{ stages, stages | filter }}" itemTap="onStageSelect">
 			<ListView.itemTemplate>
-				<Label text="{{$value}}" textWrap="true" />
+				<Label cssClass="list-view-item" text="{{value}}" textWrap="true" />
 			</ListView.itemTemplate>
 		</ListView>
 	</StackLayout>
