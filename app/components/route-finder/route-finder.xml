@@ -1,9 +1,18 @@
 <Page xmlns="http://www.nativescript.org/tns.xsd" loaded="onLoaded" navigatedTo="onNavigatedTo">
 
 	<StackLayout>
-		<Label text="Select Origin and Destination" textWrap="true" />
-		<TextField hint="Origin" text="{{ origin }}" />
-		<TextField hint="Destination" text="{{  destination }}" />
-	</StackLayout>
+		<Label text="Select Origin and Destination" textWrap="true" cssClass="title"/>
+		
+		<GridLayout rows="auto" columns="20, *, 25" cssClass="card">
+			<Image src="~/origin-circle.png" col="0"/>
+			<Label text="{{ origin }}" tap="onOriginStageTap" cssClass="stage-input-label" col="1" />
+			<Image src="~/ic_chevron_right_grey600_48dp.png" col="2"/>
+		</GridLayout>
+		<GridLayout rows="auto" columns="20, *, 25" cssClass="card">
+			<Image src="~/dest-circle.png" col="0"/>
+			<Label text="{{  dest }}" tap="onDestStageTap" cssClass="stage-input-label" col="1"/>
+			<Image src="~/ic_chevron_right_grey600_48dp.png" col="2"/>
+		</GridLayout>
 
+	</StackLayout>
 </Page>

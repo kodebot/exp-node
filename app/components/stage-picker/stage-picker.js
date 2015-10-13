@@ -6,7 +6,7 @@ var application = require("application");
 var vm = require("./stage-picker-vm").stageData;
 var config = require("./../../config");
 var devUtils = require("./../../dev-utils/dev-utils");
-
+var navUtils = require("./../../nav-manager/nav-manager");
 exports.pageLoaded = function (args) {
 	var page = args.object;
 	page.bindingContext = vm;
@@ -19,10 +19,5 @@ exports.pageLoaded = function (args) {
 }
 
 exports.onStageSelect = function (args) {
-	var topmost = frames.topmost();
-	topmost.navigate({
-		moduleName: "components/route-finder/route-finder",
-		context: { index: args.index },
-		animate: false
-	});
+	navUtils.goToRouteFinder({ selectedItem: args.index });
 }
