@@ -1,19 +1,26 @@
-var vm = require("./route-finder-vm").routeFinderData;
+var vm = require("./route-finder-vm");
 var navManager = require("./../../nav-manager/nav-manager");
 
-exports.onLoaded = function (args) {
+function onPageLoaded(args) {
 	var page = args.object;
-	page.bindingContext = vm;
+	page.bindingContext = vm.routeFinderData;
 }
 
-exports.onNavigatedTo = function (args) {
-
+function onOriginStageTap() {
+	vm.goToStagePicker({ origin: true, dest: false })
 }
 
-exports.onOriginStageTap = function () {
-	navManager.goToStagePicker();
+function onNavigatedTo(args) {
+	vm.onNavigatedTo(args.context)
 }
 
-exports.onDestStageTap = function () {
-	navManager.goToStagePicker();
+function onDestStageTap() {
+	vm.goToStagePicker({ origin: false, dest: true })
 }
+
+
+
+exports.onLoaded = onPageLoaded;
+exports.onNavigatedTo = onNavigatedTo;
+exports.onOriginStageTap = onOriginStageTap;
+exports.onDestStageTap = onDestStageTap;

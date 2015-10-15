@@ -1,11 +1,7 @@
-<Page xmlns="http://www.nativescript.org/tns.xsd" loaded="pageLoaded">
+<Page xmlns="http://www.nativescript.org/tns.xsd" loaded="pageLoaded" navigatedTo="onNavigatedTo">
 	<Page.actionBar>
 		<ActionBar title="Stages" icon="">
 			<NavigationButton text="Back" icon="" tap="" />
-			<ActionBar.actionItems>
-				<ActionItem icon="" text="Left" tap="" ios.position="left" />
-				<ActionItem icon="" text="Right" tap="" ios.position="right" />
-			</ActionBar.actionItems>
 		</ActionBar>
 	</Page.actionBar>
 	<StackLayout orientation="vertical">

@@ -1,15 +1,11 @@
 var Color = require("color").Color;
-var views = require("ui/core/view");
-var frames = require("ui/frame");
-var dialogs = require("ui/dialogs");
 var application = require("application");
-var vm = require("./stage-picker-vm").stageData;
+var vm = require("./stage-picker-vm");
 var config = require("./../../config");
-var devUtils = require("./../../dev-utils/dev-utils");
-var navUtils = require("./../../nav-manager/nav-manager");
-exports.pageLoaded = function (args) {
+
+function pageLoaded(args) {
 	var page = args.object;
-	page.bindingContext = vm;
+	page.bindingContext = vm.stageData;
 
 	if (page.android) {
 		application.android.foregroundActivity.getWindow().setStatusBarColor(new Color(config.styles.primaryColor).android);
@@ -18,6 +14,15 @@ exports.pageLoaded = function (args) {
 	}
 }
 
-exports.onStageSelect = function (args) {
-	navUtils.goToRouteFinder({ selectedItem: args.index });
+function onNavigatedTo(args){
+	vm.onNavigatedTo(args.context);	
 }
+
+function onStageSelect(args) {
+	vm.goToRouteFinder(args.index);
+}
+
+
+exports.pageLoaded = pageLoaded;
+exports.onNavigatedTo = onNavigatedTo;
+exports.onStageSelect = onStageSelect;
