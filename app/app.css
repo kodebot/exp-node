@@ -1,16 +1,21 @@
-﻿.title {
-    font-size: 30;
-    horizontal-align: center;
-    margin:20;
+﻿Page{
+    background-color: #FFFFFF;
+    color: black;
+    opacity: .87;
 }
 
-button {
-    font-size: 42;
-    horizontal-align: center;
+ActionBar{
+   background-color: #F44336;
+   font-size:20;
 }
 
-.message {
-    font-size: 20;
-    color: #284848;
-    horizontal-align: center;
+ActionItem{
+    color:#FFF;
+}
+
+.list-view-item{
+	height: 48;
+	font-size: 16;
+	padding-top: 16;
+	padding-left: 20;
 }
