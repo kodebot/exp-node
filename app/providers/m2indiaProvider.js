@@ -3,6 +3,7 @@
 var selenium_webdriver_1 = require("selenium-webdriver");
 var driver_1 = require("../driver/driver");
 var pageMapRepository_1 = require("../pageMaps/pageMapRepository");
+var rateRepository_1 = require("../rates/rateRepository");
 var URL = "https://m2inet.icicibank.co.in/m2iNet/exchangeRate.misc";
 var M2indiaProvider = (function () {
     function M2indiaProvider() {
@@ -46,8 +47,12 @@ var M2indiaProvider = (function () {
                 return "MAX";
             return item;
         }));
-        pageMapRepository_1.pageMapRepository.updateLastProcessedDateTime(pageMap);
-        console.log("Extracted " + (pageMap.indicative ? "indicative" : "fixed") + " rates for currency: " + pageMap.currencyValue + ", transferMode:" + pageMap.transferMode + ", deliveryMode: " + pageMap.deliveryMode + " successfully");
+        rateRepository_1.rateRepository.postRate(pageMap.provider, formattedResult, function (err) {
+            if (!err) {
+                pageMapRepository_1.pageMapRepository.updateLastProcessedDateTime(pageMap);
+                console.log("Extracted " + (pageMap.indicative ? "indicative" : "fixed") + " rates for currency: " + pageMap.currencyValue + ", transferMode:" + pageMap.transferMode + ", deliveryMode: " + pageMap.deliveryMode + " successfully");
+            }
+        });
     };
     M2indiaProvider.prototype._handleError = function (pageMap, err) {
         console.log("Error while retrieving " + (pageMap.indicative ? "indicative" : "fixed") + "  rates for search parameters currency: " + pageMap.currencyValue + ", transferMode:" + pageMap.transferMode + ", \n        deliveryMode: " + pageMap.deliveryMode + ". Error: " + err.message);

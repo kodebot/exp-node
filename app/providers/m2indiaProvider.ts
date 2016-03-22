@@ -4,12 +4,11 @@ import {By, until, promise} from "selenium-webdriver";
 import driver from "../driver/driver";
 import {Currency} from "../model/model";
 import {pageMapRepository} from "../pageMaps/pageMapRepository";
+import {rateRepository} from "../rates/rateRepository";
 const URL: string = "https://m2inet.icicibank.co.in/m2iNet/exchangeRate.misc";
 export class M2indiaProvider {
     read() {
-         this._getRate();
-
-      
+        this._getRate();
     }
 
     private _getRate() {
@@ -46,8 +45,13 @@ export class M2indiaProvider {
             return item;
 
         }));
-        pageMapRepository.updateLastProcessedDateTime(pageMap);
-        console.log(`Extracted ${pageMap.indicative ? "indicative" : "fixed"} rates for currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, deliveryMode: ${pageMap.deliveryMode} successfully`);
+        rateRepository.postRate(pageMap.provider, formattedResult, err => {
+            if (!err) {
+                pageMapRepository.updateLastProcessedDateTime(pageMap);
+                console.log(`Extracted ${pageMap.indicative ? "indicative" : "fixed"} rates for currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, deliveryMode: ${pageMap.deliveryMode} successfully`);
+            }
+        });
+
     }
 
     private _handleError(pageMap, err) {
