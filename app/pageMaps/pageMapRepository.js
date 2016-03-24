@@ -1,19 +1,18 @@
 "use strict";
-var low = require("lowdb");
-var storage = require("lowdb/file-sync");
-var PAGE_MAP_DB = "pageMaps";
-var PageMapRepository = (function () {
-    function PageMapRepository() {
+const low = require("lowdb");
+const storage = require("lowdb/file-sync");
+const PAGE_MAP_DB = "pageMaps";
+class PageMapRepository {
+    constructor() {
         var database = low("pageMaps.json", { storage: storage });
         this._pageMaps = database(PAGE_MAP_DB);
     }
-    PageMapRepository.prototype.getAllForProvider = function (providerName) {
+    getAllForProvider(providerName) {
         return this._pageMaps.chain().filter({ "provider": providerName }).value();
-    };
-    PageMapRepository.prototype.updateLastProcessedDateTime = function (finder) {
+    }
+    updateLastProcessedDateTime(finder) {
         this._pageMaps.chain().find(finder).assign({ "lastProcessedDateTime": new Date().toUTCString() }).value();
-    };
-    return PageMapRepository;
-}());
+    }
+}
 exports.pageMapRepository = new PageMapRepository();
 //# sourceMappingURL=pageMapRepository.js.map

@@ -1,11 +1,14 @@
 /// <reference path="../../typings/main/ambient/selenium-webdriver/selenium-webdriver.d.ts" />
 
-import {By, until, promise} from "selenium-webdriver";
+import {By, until, promise, error} from "selenium-webdriver";
 import driver from "../driver/driver";
 import {Currency} from "../model/model";
 import {pageMapRepository} from "../pageMaps/pageMapRepository";
 import {rateRepository} from "../rates/rateRepository";
+
 const URL: string = "https://m2inet.icicibank.co.in/m2iNet/exchangeRate.misc";
+const SCRAPE_FREQUENCY_IN_HOURS = 12;
+
 export class M2indiaProvider {
     read() {
         this._getRate();
@@ -14,20 +17,26 @@ export class M2indiaProvider {
     private _getRate() {
         let pageMaps = this._getPageMaps();
         for (let pageMap of pageMaps) {
-            driver.get(URL);
+            let lastScrapedBefore = pageMap.lastProcessedDateTime && ((new Date().getTime() - Date.parse(pageMap.lastProcessedDateTime)) / (1000 * 60 * 60));
+            if (!lastScrapedBefore || lastScrapedBefore > SCRAPE_FREQUENCY_IN_HOURS) {
+                this._scrapeRate(pageMap);
+            }
+        }
+    }
+
+    private _scrapeRate(pageMap) {
+        if (pageMap.indicative) {
             this._setSearchParameters(pageMap.currencyValue, pageMap.transferMode, pageMap.deliveryMode);
+            this._getRatesForIndicative(pageMap.skipOptionClick)
+                .then(result => this._processResult(pageMap, result))
+                .thenCatch(err => this._handleError(pageMap, err));
+        }
 
-            if (pageMap.indicative) {
-                this._getRatesForIndicative(pageMap.skipOptionClick)
-                    .then(result => this._processResult(pageMap, result))
-                    .thenCatch(err => this._handleError(pageMap, err));
-            }
-
-            if (pageMap.fixed) {
-                this._getRatesForFixed(pageMap.skipOptionClick)
-                    .then(result => this._processResult(pageMap, result))
-                    .thenCatch(err => this._handleError(pageMap, err));
-            }
+        if (pageMap.fixed) {
+            this._setSearchParameters(pageMap.currencyValue, pageMap.transferMode, pageMap.deliveryMode);
+            this._getRatesForFixed(pageMap.skipOptionClick)
+                .then(result => this._processResult(pageMap, result))
+                .thenCatch(err => this._handleError(pageMap, err));
         }
     }
 
@@ -35,31 +44,34 @@ export class M2indiaProvider {
         var formattedResult = [];
 
         var chunkSize = 3;
-        for (let i = 0; i <= result.length; i += chunkSize) {
+        for (let i = chunkSize; i < result.length; i += chunkSize) {
             formattedResult.push(result.slice(i, i + chunkSize));
         }
-
-        console.log(formattedResult.map(item => {
-            if (item === "Less Than") return 0;
-            if (item === "and above") return "MAX";
+        formattedResult = formattedResult.map(item => {
+            if (item[0] === "Less Than") {item[0] = "0"; return item;};
+            if (item[1] === "and above") {item[1] = "MAX"; return item;};
             return item;
-
-        }));
+        });
+        console.log(formattedResult);
         rateRepository.postRate(pageMap.provider, formattedResult, err => {
             if (!err) {
                 pageMapRepository.updateLastProcessedDateTime(pageMap);
-                console.log(`Extracted ${pageMap.indicative ? "indicative" : "fixed"} rates for currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, deliveryMode: ${pageMap.deliveryMode} successfully`);
+                console.log(`Extracted ${pageMap.indicative ? "indicative" : "fixed"} rates for 
+                    currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, 
+                    deliveryMode: ${pageMap.deliveryMode} successfully`);
             }
         });
 
     }
 
     private _handleError(pageMap, err) {
-        console.log(`Error while retrieving ${pageMap.indicative ? "indicative" : "fixed"}  rates for search parameters currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, 
-        deliveryMode: ${pageMap.deliveryMode}. Error: ${err.message}`);
+        console.log(`Error while retrieving ${pageMap.indicative ? "indicative" : "fixed"}  rates for search
+             parameters currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, 
+             deliveryMode: ${pageMap.deliveryMode}. Error: ${err.message}`);
     }
 
     private _setSearchParameters(currency, transferMode, deliveryMode) {
+        driver.get(URL);
         var locators = [
             By.xpath(`//*[@id='currencyId']/option[text()='${currency}'] `),
             By.xpath(`//*[@id='product']/option[text()='${transferMode}'] `),
@@ -69,7 +81,8 @@ export class M2indiaProvider {
 
         return promise.all(promises)
             .then(_ => console.log(`Search parameters currency: ${currency}, transferMode:${transferMode}, deliveryMode: ${deliveryMode} set successfully`))
-            .thenCatch(err => console.log(`Error while setting search parameters currency: ${currency}, transferMode:${transferMode}, deliveryMode: ${deliveryMode}. Error: ${err.message}`));
+            .thenCatch(err => console.log(`Error while setting search parameters currency: 
+                ${currency}, transferMode:${transferMode}, deliveryMode: ${deliveryMode}. Error: ${err.message}`));
     }
 
     private _getRatesForIndicative(skipOptionClick) {
@@ -116,7 +129,6 @@ export class M2indiaProvider {
         return driver.wait(until.elementLocated(locator), 5 * 1000)
             .then(el => el.click());
     }
-
 
     private _getPageMaps(): any[] {
         return pageMapRepository.getAllForProvider("ICICIM2India");

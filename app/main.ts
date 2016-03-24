@@ -1,4 +1,6 @@
 import {M2indiaProvider} from "./providers/m2indiaProvider";
+import {XendPayProvider} from "./providers/XendPayProvider";
 
 var m2indiaProvider = new M2indiaProvider();
-return m2indiaProvider.read();
+var xendPayProvider = new XendPayProvider();
+xendPayProvider.getRates();

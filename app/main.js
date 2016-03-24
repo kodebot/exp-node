@@ -1,5 +1,7 @@
 "use strict";
-var m2indiaProvider_1 = require("./providers/m2indiaProvider");
+const m2indiaProvider_1 = require("./providers/m2indiaProvider");
+const XendPayProvider_1 = require("./providers/XendPayProvider");
 var m2indiaProvider = new m2indiaProvider_1.M2indiaProvider();
-return m2indiaProvider.read();
+var xendPayProvider = new XendPayProvider_1.XendPayProvider();
+xendPayProvider.getRates();
 //# sourceMappingURL=main.js.map

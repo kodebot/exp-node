@@ -1,115 +1,123 @@
 /// <reference path="../../typings/main/ambient/selenium-webdriver/selenium-webdriver.d.ts" />
 "use strict";
-var selenium_webdriver_1 = require("selenium-webdriver");
-var driver_1 = require("../driver/driver");
-var pageMapRepository_1 = require("../pageMaps/pageMapRepository");
-var rateRepository_1 = require("../rates/rateRepository");
-var URL = "https://m2inet.icicibank.co.in/m2iNet/exchangeRate.misc";
-var M2indiaProvider = (function () {
-    function M2indiaProvider() {
-    }
-    M2indiaProvider.prototype.read = function () {
+const selenium_webdriver_1 = require("selenium-webdriver");
+const driver_1 = require("../driver/driver");
+const pageMapRepository_1 = require("../pageMaps/pageMapRepository");
+const rateRepository_1 = require("../rates/rateRepository");
+const URL = "https://m2inet.icicibank.co.in/m2iNet/exchangeRate.misc";
+const SCRAPE_FREQUENCY_IN_HOURS = 12;
+class M2indiaProvider {
+    read() {
         this._getRate();
-    };
-    M2indiaProvider.prototype._getRate = function () {
-        var _this = this;
-        var pageMaps = this._getPageMaps();
-        var _loop_1 = function(pageMap) {
-            driver_1.default.get(URL);
-            this_1._setSearchParameters(pageMap.currencyValue, pageMap.transferMode, pageMap.deliveryMode);
-            if (pageMap.indicative) {
-                this_1._getRatesForIndicative(pageMap.skipOptionClick)
-                    .then(function (result) { return _this._processResult(pageMap, result); })
-                    .thenCatch(function (err) { return _this._handleError(pageMap, err); });
+    }
+    _getRate() {
+        let pageMaps = this._getPageMaps();
+        for (let pageMap of pageMaps) {
+            let lastScrapedBefore = pageMap.lastProcessedDateTime && ((new Date().getTime() - Date.parse(pageMap.lastProcessedDateTime)) / (1000 * 60 * 60));
+            if (!lastScrapedBefore || lastScrapedBefore > SCRAPE_FREQUENCY_IN_HOURS) {
+                this._scrapeRate(pageMap);
             }
-            if (pageMap.fixed) {
-                this_1._getRatesForFixed(pageMap.skipOptionClick)
-                    .then(function (result) { return _this._processResult(pageMap, result); })
-                    .thenCatch(function (err) { return _this._handleError(pageMap, err); });
-            }
-        };
-        var this_1 = this;
-        for (var _i = 0, pageMaps_1 = pageMaps; _i < pageMaps_1.length; _i++) {
-            var pageMap = pageMaps_1[_i];
-            _loop_1(pageMap);
         }
-    };
-    M2indiaProvider.prototype._processResult = function (pageMap, result) {
+    }
+    _scrapeRate(pageMap) {
+        if (pageMap.indicative) {
+            this._setSearchParameters(pageMap.currencyValue, pageMap.transferMode, pageMap.deliveryMode);
+            this._getRatesForIndicative(pageMap.skipOptionClick)
+                .then(result => this._processResult(pageMap, result))
+                .thenCatch(err => this._handleError(pageMap, err));
+        }
+        if (pageMap.fixed) {
+            this._setSearchParameters(pageMap.currencyValue, pageMap.transferMode, pageMap.deliveryMode);
+            this._getRatesForFixed(pageMap.skipOptionClick)
+                .then(result => this._processResult(pageMap, result))
+                .thenCatch(err => this._handleError(pageMap, err));
+        }
+    }
+    _processResult(pageMap, result) {
         var formattedResult = [];
         var chunkSize = 3;
-        for (var i = 0; i <= result.length; i += chunkSize) {
+        for (let i = chunkSize; i < result.length; i += chunkSize) {
             formattedResult.push(result.slice(i, i + chunkSize));
         }
-        console.log(formattedResult.map(function (item) {
-            if (item === "Less Than")
-                return 0;
-            if (item === "and above")
-                return "MAX";
+        formattedResult = formattedResult.map(item => {
+            if (item[0] === "Less Than") {
+                item[0] = "0";
+                return item;
+            }
+            ;
+            if (item[1] === "and above") {
+                item[1] = "MAX";
+                return item;
+            }
+            ;
             return item;
-        }));
-        rateRepository_1.rateRepository.postRate(pageMap.provider, formattedResult, function (err) {
+        });
+        console.log(formattedResult);
+        rateRepository_1.rateRepository.postRate(pageMap.provider, formattedResult, err => {
             if (!err) {
                 pageMapRepository_1.pageMapRepository.updateLastProcessedDateTime(pageMap);
-                console.log("Extracted " + (pageMap.indicative ? "indicative" : "fixed") + " rates for currency: " + pageMap.currencyValue + ", transferMode:" + pageMap.transferMode + ", deliveryMode: " + pageMap.deliveryMode + " successfully");
+                console.log(`Extracted ${pageMap.indicative ? "indicative" : "fixed"} rates for 
+                    currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, 
+                    deliveryMode: ${pageMap.deliveryMode} successfully`);
             }
         });
-    };
-    M2indiaProvider.prototype._handleError = function (pageMap, err) {
-        console.log("Error while retrieving " + (pageMap.indicative ? "indicative" : "fixed") + "  rates for search parameters currency: " + pageMap.currencyValue + ", transferMode:" + pageMap.transferMode + ", \n        deliveryMode: " + pageMap.deliveryMode + ". Error: " + err.message);
-    };
-    M2indiaProvider.prototype._setSearchParameters = function (currency, transferMode, deliveryMode) {
-        var _this = this;
+    }
+    _handleError(pageMap, err) {
+        console.log(`Error while retrieving ${pageMap.indicative ? "indicative" : "fixed"}  rates for search
+             parameters currency: ${pageMap.currencyValue}, transferMode:${pageMap.transferMode}, 
+             deliveryMode: ${pageMap.deliveryMode}. Error: ${err.message}`);
+    }
+    _setSearchParameters(currency, transferMode, deliveryMode) {
+        driver_1.default.get(URL);
         var locators = [
-            selenium_webdriver_1.By.xpath("//*[@id='currencyId']/option[text()='" + currency + "'] "),
-            selenium_webdriver_1.By.xpath("//*[@id='product']/option[text()='" + transferMode + "'] "),
-            selenium_webdriver_1.By.xpath("//*[@id='deliveryMode']/option[text()='" + deliveryMode + "']")];
-        var promises = locators.map(function (locator) { return _this._waitAndClick(locator); });
+            selenium_webdriver_1.By.xpath(`//*[@id='currencyId']/option[text()='${currency}'] `),
+            selenium_webdriver_1.By.xpath(`//*[@id='product']/option[text()='${transferMode}'] `),
+            selenium_webdriver_1.By.xpath(`//*[@id='deliveryMode']/option[text()='${deliveryMode}']`)];
+        var promises = locators.map(locator => this._waitAndClick(locator));
         return selenium_webdriver_1.promise.all(promises)
-            .then(function (_) { return console.log("Search parameters currency: " + currency + ", transferMode:" + transferMode + ", deliveryMode: " + deliveryMode + " set successfully"); })
-            .thenCatch(function (err) { return console.log("Error while setting search parameters currency: " + currency + ", transferMode:" + transferMode + ", deliveryMode: " + deliveryMode + ". Error: " + err.message); });
-    };
-    M2indiaProvider.prototype._getRatesForIndicative = function (skipOptionClick) {
-        var _this = this;
+            .then(_ => console.log(`Search parameters currency: ${currency}, transferMode:${transferMode}, deliveryMode: ${deliveryMode} set successfully`))
+            .thenCatch(err => console.log(`Error while setting search parameters currency: 
+                ${currency}, transferMode:${transferMode}, deliveryMode: ${deliveryMode}. Error: ${err.message}`));
+    }
+    _getRatesForIndicative(skipOptionClick) {
         var promises = [];
         if (!skipOptionClick) {
-            promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath("//*[@id='nonINRradio']/*[@id='moneyType']")));
+            promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath(`//*[@id='nonINRradio']/*[@id='moneyType']`)));
         }
-        promises.push(driver_1.default.wait(selenium_webdriver_1.until.elementLocated(selenium_webdriver_1.By.xpath("//*[@id=\"txnAmountDiv1\"]/input")), 5 * 1000)
-            .then(function (el) { return el.sendKeys('1000'); }));
-        promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath("//a[@onclick='calculate();']")));
+        promises.push(driver_1.default.wait(selenium_webdriver_1.until.elementLocated(selenium_webdriver_1.By.xpath(`//*[@id="txnAmountDiv1"]/input`)), 5 * 1000)
+            .then(el => el.sendKeys('1000')));
+        promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath(`//a[@onclick='calculate();']`)));
         return selenium_webdriver_1.promise.all(promises)
-            .then(function (_) { return _this._extractRates(true); })
-            .then(function (resultPromise) { return selenium_webdriver_1.promise.all(resultPromise); });
-    };
-    M2indiaProvider.prototype._getRatesForFixed = function (skipOptionClick) {
-        var _this = this;
+            .then(_ => this._extractRates(true))
+            .then(resultPromise => selenium_webdriver_1.promise.all(resultPromise));
+    }
+    _getRatesForFixed(skipOptionClick) {
         var promises = [];
         if (!skipOptionClick) {
-            promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath("//*[@id='INRradio']/*[@id='moneyType']")));
+            promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath(`//*[@id='INRradio']/*[@id='moneyType']`)));
         }
-        promises.push(driver_1.default.wait(selenium_webdriver_1.until.elementLocated(selenium_webdriver_1.By.xpath("//*[@id=\"txnAmountDiv21\"]/input")), 5 * 1000)
-            .then(function (el) { return el.sendKeys('100000'); }));
-        promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath("//a[@onclick='calculate();']")));
+        promises.push(driver_1.default.wait(selenium_webdriver_1.until.elementLocated(selenium_webdriver_1.By.xpath(`//*[@id="txnAmountDiv21"]/input`)), 5 * 1000)
+            .then(el => el.sendKeys('100000')));
+        promises.push(this._waitAndClick(selenium_webdriver_1.By.xpath(`//a[@onclick='calculate();']`)));
         return selenium_webdriver_1.promise.all(promises)
-            .then(function (_) { return _this._extractRates(false); })
-            .then(function (resultPromise) { return selenium_webdriver_1.promise.all(resultPromise); });
-    };
-    M2indiaProvider.prototype._extractRates = function (isIndicative) {
-        var path = "//*[@id=\"fixslabs\"]/table/tbody/tr/td";
+            .then(_ => this._extractRates(false))
+            .then(resultPromise => selenium_webdriver_1.promise.all(resultPromise));
+    }
+    _extractRates(isIndicative) {
+        var path = `//*[@id="fixslabs"]/table/tbody/tr/td`;
         if (isIndicative) {
-            path = "//*[@id=\"slabsMe\"]/table/tbody/tr/td";
+            path = `//*[@id="slabsMe"]/table/tbody/tr/td`;
         }
         return driver_1.default.wait(selenium_webdriver_1.until.elementsLocated(selenium_webdriver_1.By.xpath(path)), 5 * 1000)
-            .then(function (els) { return els.map(function (el1) { return el1.getText(); }); });
-    };
-    M2indiaProvider.prototype._waitAndClick = function (locator) {
+            .then(els => els.map(el1 => el1.getText()));
+    }
+    _waitAndClick(locator) {
         return driver_1.default.wait(selenium_webdriver_1.until.elementLocated(locator), 5 * 1000)
-            .then(function (el) { return el.click(); });
-    };
-    M2indiaProvider.prototype._getPageMaps = function () {
+            .then(el => el.click());
+    }
+    _getPageMaps() {
         return pageMapRepository_1.pageMapRepository.getAllForProvider("ICICIM2India");
-    };
-    return M2indiaProvider;
-}());
+    }
+}
 exports.M2indiaProvider = M2indiaProvider;
 //# sourceMappingURL=m2indiaProvider.js.map

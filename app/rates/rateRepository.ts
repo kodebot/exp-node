@@ -1,3 +1,4 @@
+/// <reference path="../../typings/main/definitions/es6-promise/es6-promise.d.ts" />
 /// <reference path="../../typings/main/ambient/firebase/firebase.d.ts" />
 import Firebase = require("firebase");
 
