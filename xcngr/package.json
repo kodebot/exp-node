@@ -1,0 +1,21 @@
+{
+  "name": "xcngr",
+  "version": "0.0.1",
+  "description": "Exchange rate comparer for indian rupees",
+  "main": "main.js",
+  "scripts": {
+    "start": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^1.8.2",
+    "typing": "^0.1.9",
+    "typings": "^0.6.8"
+  },
+  "dependencies": {
+    "firebase": "^2.4.1",
+    "lowdb": "^0.12.5",
+    "selenium-webdriver": "^2.52.0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "ambientDependencies": {
+    "es6-promise": "github:DefinitelyTyped/DefinitelyTyped/es6-promise/es6-promise.d.ts#830e8ebd9ef137d039d5c7ede24a421f08595f83",
+    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#315f5612ceb4de6f1f81f8cf49878084ea3f364a",
+    "selenium-webdriver": "github:DefinitelyTyped/DefinitelyTyped/selenium-webdriver/selenium-webdriver.d.ts#a83677ed13add14c2ab06c7325d182d0ba2784ea"
+  },
+  "dependencies": {
+    "es6-promise": "github:typed-typings/npm-es6-promise#fb04188767acfec1defd054fc8024fafa5cd4de7"
+  }
+}
