@@ -1,0 +1,25 @@
+.stage-input-label{
+	background-color: #FFFFFF;
+	margin: 5;
+	height: 30;
+	padding: 5;
+	vertical-align: middle;
+}
+
+.title{
+	horizontal-align:center;
+	font-size: 18;
+}
+
+.card{
+	border-width: 1; 
+	border-style:solid;
+	border-color:  #AAA;
+    padding:5 5 5 10;
+    margin:10 15 0 15;
+	border-radius: 25;
+}
+
+.card-main-content {
+	padding:0 0 0 5;
+}
