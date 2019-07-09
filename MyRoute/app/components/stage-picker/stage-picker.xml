@@ -1,0 +1,15 @@
+<Page xmlns="http://www.nativescript.org/tns.xsd" loaded="pageLoaded" navigatedTo="onNavigatedTo">
+	<Page.actionBar>
+		<ActionBar title="Stages" >
+			<NavigationButton text="Back"/>
+		</ActionBar>
+	</Page.actionBar>
+	<StackLayout orientation="vertical">
+		<TextField hint="Start typing to filter" text="{{ filterText }}" />
+		<ListView items="{{ stages, stages | filter }}" itemTap="onStageSelect">
+			<ListView.itemTemplate>
+				<Label cssClass="list-view-item" text="{{$value.name}}" textWrap="true" />
+			</ListView.itemTemplate>
+		</ListView>
+	</StackLayout>
+</Page>
